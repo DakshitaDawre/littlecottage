@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>the room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@400;500&family=Caveat:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* foundation */
+    --paper:#F3EEE3;
+    --paper-deep:#EAE2D2;
+    --card:#FAF7EF;
+    --ink:#2E2A22;
+    --ink-soft:#655B48;
+    --line:#D8CDB6;
+    --sage:#7C8F72;
+    --sage-deep:#566349;
+    --brown:#6E5A42;
+
+    /* seasonal accent — swapped by JS */
+    --accent:#B98B6B;
+    --accent-soft:#E4D3C0;
+
+    /* weather colors */
+    --w-sun:#C9A227;
+    --w-cloud:#8FA1AC;
+    --w-rain:#5C7A93;
+    --w-night:#5B5470;
+    --w-fog:#9C9789;
+    --w-sprout:#6E8A5B;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'DM Sans', sans-serif;
+    min-height:100vh;
+    transition:background .6s ease;
+  }
+  h1,h2,h3{ font-family:'Source Serif 4', serif; font-weight:500; margin:0; letter-spacing:-0.01em; }
+  .sig{ font-family:'Caveat', cursive; }
+
+  #app{ max-width:740px; margin:0 auto; padding:0 24px 100px; }
+
+  /* ---------- nav ---------- */
+  nav{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:26px 0 20px; border-bottom:1px solid var(--line);
+    margin-bottom:30px; position:sticky; top:0; background:var(--paper);
+    z-index:5; gap:16px;
+  }
+  .brand{ font-family:'Source Serif 4'; font-size:17px; font-style:italic; color:var(--ink); cursor:pointer; flex-shrink:0; }
+  .brand span{ color:var(--accent); font-style:normal; }
+  .nav-links{
+    display:flex; gap:22px; overflow-x:auto; -webkit-overflow-scrolling:touch;
+    scrollbar-width:none; -ms-overflow-style:none;
+  }
+  .nav-links::-webkit-scrollbar{ display:none; }
+  .nav-links button{
+    background:none; border:none; font-family:'DM Sans'; font-size:13px;
+    color:var(--ink-soft); cursor:pointer; padding:4px 0; position:relative;
+    white-space:nowrap; flex-shrink:0;
+  }
+  .nav-links button.active{ color:var(--ink); }
+  .nav-links button.active::after{
+    content:''; position:absolute; left:0; right:0; bottom:-6px; height:1px; background:var(--accent);
+  }
+
+  /* ---------- illustration ---------- */
+  .sketch{ width:100%; max-width:180px; margin:0 auto 18px; display:block; opacity:0.85; }
+
+  /* ---------- today ---------- */
+  .season-line{
+    text-align:center; font-size:12px; color:var(--ink-soft); letter-spacing:0.03em;
+    margin-bottom:2px;
+  }
+  .today-date{ text-align:center; font-size:26px; margin-bottom:4px; }
+  .today-sub{ text-align:center; font-size:13px; color:var(--ink-soft); font-style:italic; margin-bottom:34px; }
+
+  .weather-q{ text-align:center; font-size:15px; margin-bottom:16px; }
+  .weather-row{ display:flex; justify-content:center; gap:14px; margin-bottom:40px; flex-wrap:wrap; }
+  .weather-opt{
+    width:52px; height:52px; border-radius:50%; border:1px solid var(--line);
+    background:var(--card); display:flex; align-items:center; justify-content:center;
+    font-size:20px; cursor:pointer; transition:all .2s ease;
+  }
+  .weather-opt.selected{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+
+  .day-arc{ display:flex; flex-direction:column; gap:2px; }
+  .arc-block{
+    border-top:1px solid var(--line); padding:22px 0;
+  }
+  .arc-block:first-child{ border-top:none; }
+  .arc-label{
+    font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-soft);
+    margin-bottom:12px;
+  }
+  .arc-prompt{ font-size:15px; margin-bottom:10px; color:var(--ink); }
+  textarea.entry{
+    width:100%; font-family:'DM Sans'; font-size:14.5px; line-height:1.7; color:var(--ink);
+    background:transparent; border:none; border-bottom:1px solid var(--line);
+    padding:6px 0 10px; resize:vertical; min-height:44px;
+  }
+  textarea.entry:focus{ outline:none; border-bottom-color:var(--accent); }
+  textarea.entry::placeholder{ color:#B4A98F; font-style:italic; }
+
+  .chip-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .chip{
+    border:1px solid var(--line); border-radius:14px; padding:5px 12px; font-size:12.5px;
+    cursor:pointer; color:var(--ink-soft); background:var(--card);
+  }
+  .chip.on{ border-color:var(--sage); color:var(--sage-deep); background:var(--accent-soft); }
+
+  .care-line{ font-size:13px; color:var(--ink-soft); margin-top:16px; }
+
+  .save-note{ font-size:12.5px; color:var(--sage-deep); font-style:italic; min-height:18px; margin-top:8px; }
+
+  /* ---------- write ---------- */
+  .mode-tabs{
+    display:flex; gap:18px; margin-bottom:28px; border-bottom:1px solid var(--line);
+    overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; -ms-overflow-style:none;
+  }
+  .mode-tabs::-webkit-scrollbar{ display:none; }
+  .mode-tabs button{
+    background:none; border:none; font-family:'DM Sans'; font-size:13px; color:var(--ink-soft);
+    padding:8px 0; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px;
+    white-space:nowrap; flex-shrink:0;
+  }
+  .mode-tabs button.active{ color:var(--ink); border-bottom-color:var(--accent); }
+
+  .write-field{
+    width:100%; font-family:'Source Serif 4'; font-size:16px; line-height:1.8; color:var(--ink);
+    background:transparent; border:none; resize:vertical; min-height:180px;
+  }
+  .write-field:focus{ outline:none; }
+  .write-field::placeholder{ color:#B4A98F; font-style:italic; font-family:'DM Sans'; font-size:14px; }
+
+  .write-meta{ display:flex; gap:14px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
+  .write-meta select, .write-meta input[type=text], .write-meta input[type=date]{
+    font-family:'DM Sans'; font-size:12.5px; color:var(--ink-soft);
+    background:var(--card); border:1px solid var(--line); border-radius:8px; padding:6px 10px;
+  }
+
+  .entry-list{ display:flex; flex-direction:column; gap:0; margin-top:10px; }
+  .entry-row{
+    padding:16px 0; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:4px;
+  }
+  .entry-row .meta{ font-size:11.5px; color:var(--ink-soft); display:flex; gap:10px; align-items:center; }
+  .entry-row .body-text{ font-size:14px; line-height:1.7; color:var(--ink); }
+  .weather-dot{ width:8px; height:8px; border-radius:50%; display:inline-block; }
+  .empty-note{ font-size:13px; color:var(--ink-soft); font-style:italic; padding:16px 0; }
+
+  /* ---------- soul ---------- */
+  .soul-grid{ display:flex; flex-direction:column; gap:0; }
+  .soul-item{ border-top:1px solid var(--line); padding:20px 0; }
+  .soul-item:first-child{ border-top:none; }
+  .soul-item h3{ font-size:16px; margin-bottom:8px; }
+  .release-list, .gratitude-list{ display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+  .release-tag{ font-size:13px; color:var(--ink-soft); padding-left:14px; position:relative; }
+  .release-tag::before{ content:'—'; position:absolute; left:0; color:var(--accent); }
+
+  .affirmation-box{
+    text-align:center; padding:24px; background:var(--card); border:1px solid var(--line);
+    border-radius:4px; font-family:'Source Serif 4'; font-style:italic; font-size:15px; color:var(--ink);
+    margin-top:6px;
+  }
+
+  /* ---------- library / studio grid ---------- */
+  .subject-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:0; margin-bottom:30px; }
+  .subject-tile{
+    text-align:center; padding:16px 4px; cursor:pointer; border-top:1px solid var(--line);
+    border-left:1px solid var(--line);
+  }
+  .subject-tile:nth-child(4n+1){ border-left:none; }
+  .subject-tile:nth-child(-n+4){ border-top:none; }
+  .subject-tile .name{ font-size:12px; color:var(--ink-soft); }
+  .subject-tile.active .name{ color:var(--ink); }
+  @media (max-width:560px){ .subject-grid{ grid-template-columns:repeat(2,1fr); } .subject-tile:nth-child(2n+1){border-left:none;} .subject-tile:nth-child(-n+2){border-top:none;} .subject-tile:nth-child(3), .subject-tile:nth-child(4){border-top:1px solid var(--line);} }
+
+  .word-row{ display:flex; gap:12px; margin-bottom:14px; }
+  .word-row input{ flex:1; font-family:'DM Sans'; font-size:13px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; background:var(--card); }
+
+  /* ---------- look back ---------- */
+  .lookback-strip{ display:flex; gap:4px; margin:20px 0 30px; flex-wrap:wrap; }
+  .lb-dot{ width:14px; height:14px; border-radius:50%; opacity:0.85; }
+  .lookback-note{ font-size:13px; color:var(--ink-soft); text-align:center; }
+
+  /* ---------- shared ---------- */
+  button.primary{
+    background:var(--sage-deep); color:var(--card); border:none; border-radius:3px;
+    padding:9px 20px; font-family:'DM Sans'; font-size:13px; cursor:pointer; letter-spacing:0.01em;
+  }
+  button.primary:hover{ background:var(--sage); }
+  button.ghost{
+    background:none; border:1px solid var(--line); color:var(--ink-soft); border-radius:3px;
+    padding:8px 18px; font-family:'DM Sans'; font-size:13px; cursor:pointer;
+  }
+
+  .return-banner{
+    text-align:center; padding:16px; margin-bottom:26px; border:1px solid var(--line);
+    border-radius:4px; background:var(--card); font-size:13px; color:var(--ink-soft); font-style:italic;
+  }
+
+  ::selection{ background:var(--accent-soft); }
+
+  /* ---------- responsive ---------- */
+
+  /* Desktop / MacBook — give it breathing room, don't let it feel like a stretched phone view */
+  @media (min-width:1000px){
+    #app{ max-width:760px; padding:0 24px 120px; }
+    .today-date{ font-size:29px; }
+    .write-field{ font-size:17px; }
+  }
+
+  /* Tablet (iPad portrait/landscape ~600–999px) */
+  @media (max-width:999px) and (min-width:641px){
+    #app{ max-width:620px; padding:0 22px 90px; }
+  }
+
+  /* Phone (≤640px) */
+  @media (max-width:640px){
+    #app{ padding:0 18px 90px; }
+    nav{ padding:18px 0 14px; margin-bottom:22px; gap:12px; }
+    .brand{ font-size:15px; }
+    .nav-links{ gap:16px; }
+    .nav-links button{ font-size:12px; }
+
+    .sketch{ max-width:130px; }
+    .today-date{ font-size:22px; }
+    .today-sub{ font-size:12px; margin-bottom:26px; }
+    .weather-q{ font-size:14px; }
+    .weather-row{ gap:10px; margin-bottom:32px; }
+    .weather-opt{ width:44px; height:44px; font-size:17px; }
+
+    .arc-block{ padding:18px 0; }
+    .arc-prompt{ font-size:14px; }
+    textarea.entry{ font-size:14px; }
+
+    .mode-tabs{ gap:14px; margin-bottom:22px; }
+    .write-field{ font-size:15px; min-height:140px; }
+    .write-meta{ gap:10px; }
+    .write-meta select, .write-meta input[type=text], .write-meta input[type=date]{
+      font-size:12px; padding:7px 9px; flex:1 1 auto; min-width:0;
+    }
+
+    .subject-grid{ grid-template-columns:repeat(3,1fr); }
+    .subject-tile:nth-child(4n+1){ border-left:1px solid var(--line); }
+    .subject-tile:nth-child(3n+1){ border-left:none; }
+    .subject-tile:nth-child(-n+4){ border-top:1px solid var(--line); }
+    .subject-tile:nth-child(-n+3){ border-top:none; }
+    .subject-tile{ padding:13px 4px; }
+    .subject-tile .name{ font-size:11px; }
+
+    .word-row{ flex-direction:column; gap:8px; }
+    .affirmation-box{ padding:18px; font-size:14px; }
+    .soul-item{ padding:16px 0; }
+
+    button.primary, button.ghost{ width:100%; text-align:center; padding:11px 16px; }
+    #w-save.primary, #b-save-morning, .arc-block button{ width:auto; }
+  }
+
+  /* Small phones */
+  @media (max-width:380px){
+    #app{ padding:0 14px 90px; }
+    .nav-links{ gap:12px; }
+    .weather-opt{ width:40px; height:40px; font-size:16px; }
+    .subject-grid{ grid-template-columns:repeat(2,1fr); }
+    .subject-tile:nth-child(3n+1){ border-left:1px solid var(--line); }
+    .subject-tile:nth-child(2n+1){ border-left:none; }
+    .subject-tile:nth-child(-n+3){ border-top:1px solid var(--line); }
+    .subject-tile:nth-child(-n+2){ border-top:none; }
+    .subject-tile:nth-child(3), .subject-tile:nth-child(4){ border-top:1px solid var(--line); }
+  }
+
+  /* touch target comfort on coarse pointers */
+  @media (hover:none){
+    .chip{ padding:7px 14px; }
+    .weather-opt{ cursor:default; }
+    .nav-links button, .mode-tabs button{ padding:8px 0; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ---------------- state ---------------- */
+const STATE = {
+  view: 'today',
+  writeMode: 'journal',
+  weatherToday: null,
+  entries: [], // {mode, text, weather, date, to, title}
+  gratitude: [],
+  releases: [],
+  lastVisit: null,
+  monthlyLetters: {},
+};
+
+const WEATHER = [
+  { id:'sun', icon:'☀️', label:'clear', color:'var(--w-sun)' },
+  { id:'cloud', icon:'🌤️', label:'partly clouded', color:'var(--w-cloud)' },
+  { id:'rain', icon:'🌧️', label:'heavy', color:'var(--w-rain)' },
+  { id:'fog', icon:'🌫️', label:'unclear', color:'var(--w-fog)' },
+  { id:'night', icon:'🌙', label:'quiet', color:'var(--w-night)' },
+  { id:'sprout', icon:'🌱', label:'becoming', color:'var(--w-sprout)' },
+];
+
+const SEASONS = {
+  spring: { accent:'#8FA377', soft:'#E1E8D6', line:'a season of small beginnings' },
+  summer: { accent:'#C99A4A', soft:'#EFDFBE', line:'the long light of summer' },
+  autumn: { accent:'#B0714A', soft:'#E9D6C4', line:'things are turning inward' },
+  winter: { accent:'#7C8798', soft:'#DCE1E6', line:'a quiet, close kind of light' },
+};
+
+function currentSeason(){
+  const m = new Date().getMonth();
+  if(m>=2 && m<=4) return 'spring';
+  if(m>=5 && m<=7) return 'summer';
+  if(m>=8 && m<=10) return 'autumn';
+  return 'winter';
+}
+function applySeason(){
+  const s = SEASONS[currentSeason()];
+  document.documentElement.style.setProperty('--accent', s.accent);
+  document.documentElement.style.setProperty('--accent-soft', s.soft);
+}
+
+const SUBJECTS_LIB = ['History','Art','Fashion','Geography','Mathematics','Mythology','Cinema','English'];
+const SUBJECTS_STUDIO = ['Drawing','Photography','Film','UI/UX','Writing','Career'];
+
+function todayStr(){
+  return new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+}
+
+/* ---------------- ink sketches (single-color line art) ---------------- */
+function sketch(kind){
+  const s = 'stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"';
+  const wrap = inner => `<svg class="sketch" viewBox="0 0 160 120" style="color:var(--brown)">${inner}</svg>`;
+  if(kind==='today') return wrap(`<circle cx="80" cy="46" r="26" ${s}/><path d="M80 20 L80 8 M104 46 L118 46 M56 46 L42 46 M97 63 L107 73 M63 63 L53 73 M97 29 L107 19 M63 29 L53 19" ${s}/><path d="M30 100 Q80 84 130 100" ${s}/>`);
+  if(kind==='write') return wrap(`<path d="M40 100 L60 40 L100 40 Q112 40 112 52 L112 60 Q112 72 100 72 L64 72" ${s}/><path d="M44 88 L96 88" ${s}/><path d="M50 78 L94 78" ${s}/>`);
+  if(kind==='soul') return wrap(`<path d="M80 30 C60 30 46 48 46 66 C46 90 62 104 80 108 C98 104 114 90 114 66 C114 48 100 30 80 30 Z" ${s}/><path d="M80 44 C70 44 62 54 62 64" ${s}/>`);
+  if(kind==='library') return wrap(`<path d="M36 92 L36 32 Q36 26 44 26 L76 26 L76 92" ${s}/><path d="M76 92 L76 26 L108 26 Q116 26 116 32 L116 92" ${s}/><path d="M40 92 L112 92" ${s}/><path d="M50 40 L64 40 M50 50 L64 50 M88 40 L102 40 M88 50 L102 50" ${s}/>`);
+  if(kind==='studio') return wrap(`<path d="M50 90 Q40 60 66 46 Q96 30 118 52 Q126 60 116 68 Q108 74 100 66 Q94 58 84 64 Q76 70 82 80 Q86 88 76 92 Q60 98 50 90 Z" ${s}/><circle cx="70" cy="58" r="2.4" fill="currentColor"/><circle cx="88" cy="50" r="2.4" fill="currentColor"/><circle cx="96" cy="72" r="2.4" fill="currentColor"/>`);
+  return wrap('');
+}
+
+/* ---------------- render ---------------- */
+function render(){
+  const app = document.getElementById('app');
+  app.innerHTML = navHTML() + returnBanner() + viewHTML();
+  attachNav();
+  attachViewHandlers();
+  window.scrollTo(0,0);
+}
+
+function navHTML(){
+  const tabs = [
+    ['today','Today'], ['write','Write'], ['soul','Soul'], ['library','Library'], ['studio','Studio'], ['life','Life & Travel']
+  ];
+  return `
+  <nav>
+    <div class="brand" id="brandHome">the <span>room</span></div>
+    <div class="nav-links">
+      ${tabs.map(([id,label])=>`<button data-view="${id}" class="${STATE.view===id?'active':''}">${label}</button>`).join('')}
+    </div>
+  </nav>`;
+}
+
+function returnBanner(){
+  // simple simulated "been a while" — shows once per session on today view only, softly
+  if(STATE.view!=='today' || STATE._bannerShown) return '';
+  STATE._bannerShown = true;
+  return `<div class="return-banner">It's been a while. Nothing has been lost.</div>`;
+}
+
+function attachNav(){
+  document.getElementById('brandHome').addEventListener('click', ()=>{ STATE.view='today'; render(); });
+  document.querySelectorAll('.nav-links button').forEach(b=>{
+    b.addEventListener('click', ()=>{ STATE.view = b.dataset.view; render(); });
+  });
+}
+
+function viewHTML(){
+  switch(STATE.view){
+    case 'today': return todayHTML();
+    case 'write': return writeHTML();
+    case 'soul': return soulHTML();
+    case 'library': return libraryHTML();
+    case 'studio': return studioHTML();
+    case 'life': return lifeHTML();
+    default: return '';
+  }
+}
+
+/* ---------------- TODAY ---------------- */
+function todayHTML(){
+  const season = SEASONS[currentSeason()];
+  return `
+  ${sketch('today')}
+  <div class="season-line">${season.line}</div>
+  <div class="today-date">${todayStr()}</div>
+  <div class="today-sub">wake, write, rest — in whatever order today allows</div>
+
+  <div class="weather-q">What is the weather inside me today?</div>
+  <div class="weather-row" id="weatherRow">
+    ${WEATHER.map(w=>`
+      <div class="weather-opt ${STATE.weatherToday===w.id?'selected':''}" data-w="${w.id}" title="${w.label}">${w.icon}</div>
+    `).join('')}
+  </div>
+
+  <div class="day-arc">
+    <div class="arc-block">
+      <div class="arc-label">Morning</div>
+      <div class="arc-prompt">What does today ask of me?</div>
+      <textarea class="entry" id="t-morning" placeholder="a line or two is enough"></textarea>
+    </div>
+    <div class="arc-block">
+      <div class="arc-label">Afternoon — Body</div>
+      <div class="arc-prompt">What has the body needed today?</div>
+      <div class="chip-row" id="t-body-needs">
+        ${['Water','Food','Rest','Movement','Air','Quiet','Skin & hair','Cycle awareness'].map(c=>`<div class="chip" data-c="${c}">${c}</div>`).join('')}
+      </div>
+      <textarea class="entry" id="t-body-note" placeholder="anything about how the body feels today — energy, cycle, skin, whatever's true" style="margin-top:14px;"></textarea>
+    </div>
+    <div class="arc-block">
+      <div class="arc-label">Afternoon — Work</div>
+      <div class="arc-prompt">Today's one work priority</div>
+      <textarea class="entry" id="t-work" placeholder="the one thing that mattered most, career-wise"></textarea>
+    </div>
+    <div class="arc-block">
+      <div class="arc-label">Evening</div>
+      <div class="arc-prompt">Something small I learned today</div>
+      <textarea class="entry" id="t-learn" placeholder="a word, a fact, a realization"></textarea>
+    </div>
+    <div class="arc-block">
+      <div class="arc-label">Night</div>
+      <div class="arc-prompt">What can I set down before sleep?</div>
+      <textarea class="entry" id="t-night" placeholder="something you're ready to let go of"></textarea>
+    </div>
+  </div>
+
+  <button class="primary" id="t-save" style="margin-top:22px;">Close the day</button>
+  <div class="save-note" id="t-note"></div>
+  `;
+}
+
+function attachViewHandlers(){
+  if(STATE.view==='today') attachToday();
+  if(STATE.view==='write') attachWrite();
+  if(STATE.view==='soul') attachSoul();
+  if(STATE.view==='library') attachLibrary();
+  if(STATE.view==='studio') attachStudio();
+  if(STATE.view==='life') attachLife();
+}
+
+function attachToday(){
+  document.querySelectorAll('.weather-opt').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      STATE.weatherToday = el.dataset.w;
+      document.querySelectorAll('.weather-opt').forEach(o=>o.classList.remove('selected'));
+      el.classList.add('selected');
+    });
+  });
+  document.querySelectorAll('#t-body-needs .chip').forEach(el=>{
+    el.addEventListener('click', ()=> el.classList.toggle('on'));
+  });
+  document.getElementById('t-save').addEventListener('click', ()=>{
+    const text = [
+      document.getElementById('t-morning').value,
+      document.getElementById('t-body-note').value,
+      document.getElementById('t-work').value,
+      document.getElementById('t-learn').value,
+      document.getElementById('t-night').value
+    ].filter(Boolean).join(' — ');
+    if(text || STATE.weatherToday){
+      STATE.entries.push({ mode:'today', text: text || '(no words today, just the weather)', weather: STATE.weatherToday, date: todayStr() });
+    }
+    document.getElementById('t-note').textContent = 'The day is closed. Rest now.';
+  });
+}
+
+/* ---------------- MONTHLY LETTERS ---------------- */
+const MONTHS = [
+  { m:'July', icon:'🌻', theme:'The Woman Who Keeps Showing Up', sub:'Consistency' },
+  { m:'August', icon:'🌻', theme:'The Woman Who Keeps Showing Up', sub:'Consistency' },
+  { m:'September', icon:'🍂', theme:'The Woman Who Begins Again', sub:'Renewal' },
+  { m:'October', icon:'🍂', theme:'The Woman Who Creates', sub:'Creativity' },
+  { m:'November', icon:'🍁', theme:'The Woman Who Protects Her Peace', sub:'Boundaries' },
+  { m:'December', icon:'❄️', theme:'The Woman Who Looks Back With Love', sub:'Gratitude & reflection' },
+  { m:'January', icon:'❄️', theme:'The Woman Who Begins Gently', sub:'Intention' },
+  { m:'February', icon:'🌷', theme:'The Woman Who Loves', sub:'Love' },
+  { m:'March', icon:'🌷', theme:'The Woman Who Learns', sub:'Curiosity' },
+  { m:'April', icon:'🌿', theme:'The Woman Who Blooms Slowly', sub:'Patience' },
+  { m:'May', icon:'🌿', theme:'The Woman Who Explores', sub:'Adventure' },
+  { m:'June', icon:'☀️', theme:'The Woman I Became This Year', sub:'Reflection' },
+];
+let openMonth = null;
+
+function monthlyHTML(){
+  if(openMonth){
+    const m = MONTHS.find(x=>x.m===openMonth);
+    const saved = STATE.monthlyLetters[openMonth] || {};
+    return `
+    <button class="ghost" id="ml-back" style="margin-bottom:22px;">← all months</button>
+    <div style="text-align:center; margin-bottom:26px;">
+      <div style="font-size:22px;">${m.icon}</div>
+      <h3 style="font-size:20px; margin-top:6px;">${m.m}</h3>
+      <div style="font-size:13px; color:var(--ink-soft); font-style:italic; margin-top:4px;">${m.theme} — ${m.sub}</div>
+    </div>
+    <textarea class="write-field" id="ml-body" placeholder="Dear Future Me,">${saved.text || ''}</textarea>
+    <div class="write-meta" style="margin-top:18px;">
+      <input type="text" id="ml-mood" placeholder="mood" value="${saved.mood || ''}">
+      <input type="text" id="ml-where" placeholder="where I was" value="${saved.where || ''}">
+    </div>
+    <h3 style="font-size:14px; margin:26px 0 12px; color:var(--ink-soft); font-weight:400; text-transform:uppercase; letter-spacing:0.06em;">A few small details</h3>
+    <div class="write-meta" style="flex-wrap:wrap;">
+      <input type="text" id="ml-song" placeholder="a song" value="${saved.song || ''}">
+      <input type="text" id="ml-place" placeholder="a place" value="${saved.place || ''}">
+      <input type="text" id="ml-book" placeholder="a book" value="${saved.book || ''}">
+      <input type="text" id="ml-meal" placeholder="a meal" value="${saved.meal || ''}">
+    </div>
+    <div class="write-meta" style="flex-wrap:wrap; margin-top:10px;">
+      <input type="text" id="ml-learned" placeholder="something I learned" value="${saved.learned || ''}">
+      <input type="text" id="ml-released" placeholder="something I released" value="${saved.released || ''}">
+      <input type="text" id="ml-loved" placeholder="something I loved" value="${saved.loved || ''}">
+    </div>
+    <button class="primary" id="ml-save" style="margin-top:20px;">Seal this letter</button>
+    <div class="save-note" id="ml-note"></div>
+    `;
+  }
+
+  const tiles = MONTHS.map(m=>{
+    const written = !!STATE.monthlyLetters[m.m];
+    return `
+    <div class="entry-row" data-month="${m.m}" style="cursor:pointer;">
+      <div class="meta">
+        <span>${m.icon} ${m.m}</span>
+        <span>${written ? '✉ Written' : '○ Waiting'}</span>
+      </div>
+      <div class="body-text" style="font-style:italic; color:var(--ink-soft); font-size:13px;">${m.theme}</div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div style="text-align:center; margin-bottom:8px; font-size:13px; color:var(--ink-soft); font-style:italic;">
+    a little letter from today's me to the woman I'm becoming
+  </div>
+  <h3 style="text-align:center; margin:6px 0 24px; font-size:19px;">A year of becoming, one month at a time</h3>
+  <div class="entry-list" id="ml-list">${tiles}</div>
+  `;
+}
+
+function attachMonthly(){
+  if(openMonth){
+    document.getElementById('ml-back').addEventListener('click', ()=>{ openMonth = null; render(); });
+    document.getElementById('ml-save').addEventListener('click', ()=>{
+      STATE.monthlyLetters[openMonth] = {
+        text: document.getElementById('ml-body').value,
+        mood: document.getElementById('ml-mood').value,
+        where: document.getElementById('ml-where').value,
+        song: document.getElementById('ml-song').value,
+        place: document.getElementById('ml-place').value,
+        book: document.getElementById('ml-book').value,
+        meal: document.getElementById('ml-meal').value,
+        learned: document.getElementById('ml-learned').value,
+        released: document.getElementById('ml-released').value,
+        loved: document.getElementById('ml-loved').value,
+      };
+      document.getElementById('ml-note').textContent = 'Sealed. This one will keep.';
+    });
+  } else {
+    document.querySelectorAll('[data-month]').forEach(el=>{
+      el.addEventListener('click', ()=>{ openMonth = el.dataset.month; render(); });
+    });
+  }
+}
+
+/* ---------------- WRITE ---------------- */
+function writeHTML(){
+  const modes = [['journal','Journal'], ['letter','Letter'], ['monthly','Monthly Letters'], ['memory','Memory']];
+
+  if(STATE.writeMode === 'monthly'){
+    return `
+    ${sketch('write')}
+    <div class="mode-tabs">
+      ${modes.map(([id,label])=>`<button data-mode="${id}" class="${STATE.writeMode===id?'active':''}">${label}</button>`).join('')}
+    </div>
+    ${monthlyHTML()}
+    `;
+  }
+
+  const entries = STATE.entries.filter(e => STATE.writeMode==='journal' ? e.mode!=='letter' && e.mode!=='memory' : e.mode===STATE.writeMode);
+
+  let meta = '';
+  if(STATE.writeMode==='letter'){
+    meta = `
+    <div class="write-meta">
+      <select id="w-to">
+        <option>Future Me</option>
+        <option>Future Husband</option>
+        <option>Future Child</option>
+        <option>Future Self, elsewhere</option>
+      </select>
+      <input type="date" id="w-open">
+    </div>`;
+  } else if(STATE.writeMode==='memory'){
+    meta = `
+    <div class="write-meta">
+      <input type="text" id="w-place" placeholder="place">
+    </div>`;
+  }
+
+  const list = entries.slice().reverse().map(e=>{
+    const w = WEATHER.find(x=>x.id===e.weather);
+    return `
+    <div class="entry-row">
+      <div class="meta">
+        ${w ? `<span class="weather-dot" style="background:${w.color}"></span>` : ''}
+        <span>${e.date}</span>
+        ${e.to ? `<span>· to ${e.to}</span>` : ''}
+        ${e.place ? `<span>· ${e.place}</span>` : ''}
+      </div>
+      <div class="body-text">${e.text}</div>
+    </div>`;
+  }).join('');
+
+  return `
+  ${sketch('write')}
+  <div class="mode-tabs">
+    ${modes.map(([id,label])=>`<button data-mode="${id}" class="${STATE.writeMode===id?'active':''}">${label}</button>`).join('')}
+  </div>
+  ${meta}
+  <textarea class="write-field" id="w-body" placeholder="${STATE.writeMode==='letter' ? 'begin the letter...' : STATE.writeMode==='memory' ? 'what happened, what it felt like...' : "what's on your mind..."}"></textarea>
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+    <div class="chip-row" id="w-weather">
+      ${WEATHER.map(w=>`<div class="chip" data-w="${w.id}">${w.icon}</div>`).join('')}
+    </div>
+    <button class="primary" id="w-save">Save</button>
+  </div>
+  <div class="save-note" id="w-note"></div>
+
+  <div class="entry-list">
+    ${list || `<div class="empty-note">Nothing written yet in this space.</div>`}
+  </div>
+  `;
+}
+
+let writeWeatherSel = null;
+function attachWrite(){
+  document.querySelectorAll('.mode-tabs button').forEach(b=>{
+    b.addEventListener('click', ()=>{ STATE.writeMode = b.dataset.mode; openMonth=null; render(); });
+  });
+  if(STATE.writeMode === 'monthly'){ attachMonthly(); return; }
+  document.querySelectorAll('#w-weather .chip').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      document.querySelectorAll('#w-weather .chip').forEach(c=>c.classList.remove('on'));
+      el.classList.add('on');
+      writeWeatherSel = el.dataset.w;
+    });
+  });
+  document.getElementById('w-save').addEventListener('click', ()=>{
+    const body = document.getElementById('w-body').value.trim();
+    if(!body){ document.getElementById('w-note').textContent = ''; return; }
+    const entry = { mode: STATE.writeMode, text: body, weather: writeWeatherSel, date: todayStr() };
+    if(STATE.writeMode==='letter'){
+      entry.to = document.getElementById('w-to').value;
+    }
+    if(STATE.writeMode==='memory'){
+      entry.place = document.getElementById('w-place').value;
+    }
+    STATE.entries.push(entry);
+    document.getElementById('w-note').textContent = STATE.writeMode==='letter' ? 'Sealed. It will keep.' : 'Saved.';
+    writeWeatherSel = null;
+    setTimeout(render, 500);
+  });
+}
+
+/* ---------------- SOUL ---------------- */
+const AFFIRMATIONS = [
+  "I don't need to rush. I can move gently and still move forward.",
+  "Not every day needs to be productive to be worth living.",
+  "I am allowed to take up space, slowly.",
+  "What I release today makes room for something else.",
+];
+
+function soulHTML(){
+  const aff = AFFIRMATIONS[new Date().getDate() % AFFIRMATIONS.length];
+  return `
+  ${sketch('soul')}
+  <div class="soul-grid">
+    <div class="soul-item">
+      <h3>Gratitude</h3>
+      <textarea class="entry" id="s-grateful" placeholder="one thing, however small"></textarea>
+      <button class="ghost" id="s-add-grateful" style="margin-top:8px;">Add</button>
+      <div class="gratitude-list" id="s-grateful-list">
+        ${STATE.gratitude.map(g=>`<div class="release-tag">${g}</div>`).join('')}
+      </div>
+    </div>
+    <div class="soul-item">
+      <h3>What I'm releasing</h3>
+      <textarea class="entry" id="s-release" placeholder="a thought, a worry, a story I can put down"></textarea>
+      <button class="ghost" id="s-add-release" style="margin-top:8px;">Let it go</button>
+      <div class="release-list" id="s-release-list">
+        ${STATE.releases.map(r=>`<div class="release-tag">${r}</div>`).join('')}
+      </div>
+    </div>
+    <div class="soul-item">
+      <h3>Today's affirmation</h3>
+      <div class="affirmation-box">${aff}</div>
+    </div>
+    <div class="soul-item">
+      <h3>What I'm becoming</h3>
+      <div class="chip-row" id="s-becoming">
+        ${['takes care of her body','protects her peace','keeps learning','creates beautiful things','loves deeply','travels curiously','lives simply','keeps her promises','remains soft without becoming weak','knows when to let go'].map(c=>`<div class="chip" data-c="${c}">I am becoming someone who ${c}</div>`).join('')}
+      </div>
+      <div class="affirmation-box" style="margin-top:16px; font-size:13.5px;">I don't have to become her today. I only have to take one small step toward her.</div>
+    </div>
+  </div>
+  `;
+}
+function attachSoul(){
+  document.querySelectorAll('#s-becoming .chip').forEach(el=>{
+    el.addEventListener('click', ()=> el.classList.toggle('on'));
+  });
+  document.getElementById('s-add-grateful').addEventListener('click', ()=>{
+    const v = document.getElementById('s-grateful').value.trim();
+    if(v){ STATE.gratitude.push(v); render(); }
+  });
+  document.getElementById('s-add-release').addEventListener('click', ()=>{
+    const v = document.getElementById('s-release').value.trim();
+    if(v){ STATE.releases.push(v); render(); }
+  });
+}
+
+/* ---------------- LIBRARY ---------------- */
+let libSubject = 'History';
+function libraryHTML(){
+  return `
+  ${sketch('library')}
+  <div class="subject-grid">
+    ${SUBJECTS_LIB.map(s=>`<div class="subject-tile ${s===libSubject?'active':''}" data-s="${s}"><div class="name">${s}</div></div>`).join('')}
+  </div>
+  <h3 style="margin-bottom:14px; font-size:16px;">${libSubject} — a small note</h3>
+  <textarea class="write-field" id="lib-note" style="min-height:100px; font-size:14px;" placeholder="what you're reading, learning, or noticing about ${libSubject.toLowerCase()}..."></textarea>
+  <div class="word-row" style="margin-top:22px;">
+    <input type="text" id="lib-word" placeholder="today's word">
+    <input type="text" id="lib-meaning" placeholder="meaning">
+  </div>
+  <button class="primary" id="lib-save">Keep it</button>
+  <div class="save-note" id="lib-save-note"></div>
+  `;
+}
+function attachLibrary(){
+  document.querySelectorAll('.subject-tile').forEach(t=>{
+    t.addEventListener('click', ()=>{ libSubject = t.dataset.s; render(); });
+  });
+  document.getElementById('lib-save').addEventListener('click', ()=>{
+    document.getElementById('lib-save-note').textContent = 'Noted.';
+  });
+}
+
+/* ---------------- STUDIO ---------------- */
+let studioSubject = 'Drawing';
+function studioHTML(){
+  return `
+  ${sketch('studio')}
+  <div class="subject-grid">
+    ${SUBJECTS_STUDIO.map(s=>`<div class="subject-tile ${s===studioSubject?'active':''}" data-s="${s}"><div class="name">${s}</div></div>`).join('')}
+  </div>
+  <h3 style="margin-bottom:14px; font-size:16px;">${studioSubject}</h3>
+  <div class="arc-prompt">What wants to be made today?</div>
+  <textarea class="write-field" id="studio-idea" style="min-height:80px; font-size:14px;" placeholder="an idea, however unfinished"></textarea>
+  <div class="arc-prompt" style="margin-top:18px;">Something that made me feel something today</div>
+  <textarea class="entry" id="studio-inspo" placeholder="an image, a line, a piece of music"></textarea>
+  <button class="primary" id="studio-save" style="margin-top:16px;">Save to the studio</button>
+  <div class="save-note" id="studio-save-note"></div>
+  `;
+}
+function attachStudio(){
+  document.querySelectorAll('.subject-tile').forEach(t=>{
+    t.addEventListener('click', ()=>{ studioSubject = t.dataset.s; render(); });
+  });
+  document.getElementById('studio-save').addEventListener('click', ()=>{
+    document.getElementById('studio-save-note').textContent = 'Kept.';
+  });
+}
+
+/* ---------------- LIFE & TRAVEL ---------------- */
+const PACK_CATEGORIES = ['Spring','Summer','Autumn','Winter','Monsoon','Mountain','Beach','City','Camping'];
+let lifeTab = 'travel';
+let packCategory = 'Spring';
+
+function lifeHTML(){
+  const tabs = [['travel','Travel'], ['people','People'], ['simple','The Simple Life']];
+  let body = '';
+  if(lifeTab==='travel') body = travelHTML();
+  if(lifeTab==='people') body = peopleHTML();
+  if(lifeTab==='simple') body = simpleHTML();
+
+  return `
+  <div class="mode-tabs">
+    ${tabs.map(([id,label])=>`<button data-life="${id}" class="${lifeTab===id?'active':''}">${label}</button>`).join('')}
+  </div>
+  ${body}
+  `;
+}
+
+function travelHTML(){
+  return `
+  <div class="subject-grid">
+    ${PACK_CATEGORIES.map(s=>`<div class="subject-tile ${s===packCategory?'active':''}" data-pack="${s}"><div class="name">${s}</div></div>`).join('')}
+  </div>
+  <h3 style="margin-bottom:14px; font-size:16px;">${packCategory} packing notes</h3>
+  <textarea class="write-field" id="pack-note" style="min-height:100px; font-size:14px;" placeholder="what you always forget, what you always need, for ${packCategory.toLowerCase()} trips..."></textarea>
+  <button class="primary" id="pack-save" style="margin-top:14px;">Keep this note</button>
+  <div class="save-note" id="pack-save-note"></div>
+
+  <h3 style="margin:34px 0 14px; font-size:16px;">A place I've visited</h3>
+  <div class="write-meta">
+    <input type="text" id="place-name" placeholder="place">
+    <input type="date" id="place-when">
+  </div>
+  <textarea class="entry" id="place-felt" placeholder="what I saw, ate, learned, felt there"></textarea>
+  <button class="primary" id="place-save" style="margin-top:14px;">Save this postcard</button>
+  <div class="save-note" id="place-save-note"></div>
+  `;
+}
+
+function peopleHTML(){
+  return `
+  <div class="arc-prompt">Who deserves more of my presence lately?</div>
+  <textarea class="entry" id="people-presence" placeholder="a name, a feeling, nothing that needs fixing"></textarea>
+  <div class="arc-prompt" style="margin-top:22px;">Someone I love — what I appreciate, what I want to remember, what I want to tell them</div>
+  <div class="write-meta">
+    <input type="text" id="people-name" placeholder="their name">
+  </div>
+  <textarea class="write-field" id="people-note" style="min-height:100px; font-size:14px;" placeholder="write freely..."></textarea>
+  <button class="primary" id="people-save" style="margin-top:14px;">Keep this</button>
+  <div class="save-note" id="people-save-note"></div>
+  `;
+}
+
+function simpleHTML(){
+  return `
+  <div class="affirmation-box" style="margin-bottom:22px;">Do I need this, or do I simply want the feeling this object represents?</div>
+  <div class="arc-prompt">Something I'm ready to let go of</div>
+  <textarea class="entry" id="simple-let-go" placeholder="a thing, a habit, a version of a plan"></textarea>
+  <div class="arc-prompt" style="margin-top:22px;">Something I don't need to buy</div>
+  <textarea class="entry" id="simple-not-buy"></textarea>
+  <button class="primary" id="simple-save" style="margin-top:14px;">Save</button>
+  <div class="save-note" id="simple-save-note"></div>
+  `;
+}
+
+function attachLife(){
+  document.querySelectorAll('[data-life]').forEach(b=>{
+    b.addEventListener('click', ()=>{ lifeTab = b.dataset.life; render(); });
+  });
+  if(lifeTab==='travel'){
+    document.querySelectorAll('[data-pack]').forEach(t=>{
+      t.addEventListener('click', ()=>{ packCategory = t.dataset.pack; render(); });
+    });
+    document.getElementById('pack-save').addEventListener('click', ()=>{
+      document.getElementById('pack-save-note').textContent = 'Kept in your packing library.';
+    });
+    document.getElementById('place-save').addEventListener('click', ()=>{
+      const name = document.getElementById('place-name').value.trim();
+      if(name){
+        STATE.entries.push({ mode:'memory', text: document.getElementById('place-felt').value, place: name, date: todayStr() });
+      }
+      document.getElementById('place-save-note').textContent = 'This postcard is tucked away.';
+    });
+  }
+  if(lifeTab==='people'){
+    document.getElementById('people-save').addEventListener('click', ()=>{
+      document.getElementById('people-save-note').textContent = 'Kept, quietly.';
+    });
+  }
+  if(lifeTab==='simple'){
+    document.getElementById('simple-save').addEventListener('click', ()=>{
+      document.getElementById('simple-save-note').textContent = 'Noted.';
+    });
+  }
+}
+
+/* ---------------- init ---------------- */
+applySeason();
+render();
+</script>
+</body>
+</html>
