@@ -19,7 +19,7 @@
     --sage-deep:#566349;
     --brown:#6E5A42;
 
-    /* seasonal accent — swapped by JS */
+    /* seasonal accent - swapped by JS */
     --accent:#B98B6B;
     --accent-soft:#E4D3C0;
 
@@ -161,7 +161,7 @@
   .soul-item h3{ font-size:16px; margin-bottom:8px; }
   .release-list, .gratitude-list{ display:flex; flex-direction:column; gap:6px; margin-top:10px; }
   .release-tag{ font-size:13px; color:var(--ink-soft); padding-left:14px; position:relative; }
-  .release-tag::before{ content:'—'; position:absolute; left:0; color:var(--accent); }
+  .release-tag::before{ content:'-'; position:absolute; left:0; color:var(--accent); }
 
   .affirmation-box{
     text-align:center; padding:24px; background:var(--card); border:1px solid var(--line);
@@ -209,7 +209,7 @@
 
   /* ---------- responsive ---------- */
 
-  /* Desktop / MacBook — give it breathing room, don't let it feel like a stretched phone view */
+  /* Desktop / MacBook - give it breathing room, don't let it feel like a stretched phone view */
   @media (min-width:1000px){
     #app{ max-width:760px; padding:0 24px 120px; }
     .today-date{ font-size:29px; }
@@ -371,7 +371,7 @@ function navHTML(){
 }
 
 function returnBanner(){
-  // simple simulated "been a while" — shows once per session on today view only, softly
+  // simple simulated "been a while" - shows once per session on today view only, softly
   if(STATE.view!=='today' || STATE._bannerShown) return '';
   STATE._bannerShown = true;
   return `<div class="return-banner">It's been a while. Nothing has been lost.</div>`;
@@ -403,7 +403,7 @@ function todayHTML(){
   ${sketch('today')}
   <div class="season-line">${season.line}</div>
   <div class="today-date">${todayStr()}</div>
-  <div class="today-sub">wake, write, rest — in whatever order today allows</div>
+  <div class="today-sub">wake, write, rest - in whatever order today allows</div>
 
   <div class="weather-q">What is the weather inside me today?</div>
   <div class="weather-row" id="weatherRow">
@@ -419,15 +419,15 @@ function todayHTML(){
       <textarea class="entry" id="t-morning" placeholder="a line or two is enough"></textarea>
     </div>
     <div class="arc-block">
-      <div class="arc-label">Afternoon — Body</div>
+      <div class="arc-label">Afternoon - Body</div>
       <div class="arc-prompt">What has the body needed today?</div>
       <div class="chip-row" id="t-body-needs">
         ${['Water','Food','Rest','Movement','Air','Quiet','Skin & hair','Cycle awareness'].map(c=>`<div class="chip" data-c="${c}">${c}</div>`).join('')}
       </div>
-      <textarea class="entry" id="t-body-note" placeholder="anything about how the body feels today — energy, cycle, skin, whatever's true" style="margin-top:14px;"></textarea>
+      <textarea class="entry" id="t-body-note" placeholder="anything about how the body feels today - energy, cycle, skin, whatever's true" style="margin-top:14px;"></textarea>
     </div>
     <div class="arc-block">
-      <div class="arc-label">Afternoon — Work</div>
+      <div class="arc-label">Afternoon - Work</div>
       <div class="arc-prompt">Today's one work priority</div>
       <textarea class="entry" id="t-work" placeholder="the one thing that mattered most, career-wise"></textarea>
     </div>
@@ -475,7 +475,7 @@ function attachToday(){
       document.getElementById('t-work').value,
       document.getElementById('t-learn').value,
       document.getElementById('t-night').value
-    ].filter(Boolean).join(' — ');
+    ].filter(Boolean).join(' - ');
     if(text || STATE.weatherToday){
       STATE.entries.push({ mode:'today', text: text || '(no words today, just the weather)', weather: STATE.weatherToday, date: todayStr() });
     }
@@ -509,7 +509,7 @@ function monthlyHTML(){
     <div style="text-align:center; margin-bottom:26px;">
       <div style="font-size:22px;">${m.icon}</div>
       <h3 style="font-size:20px; margin-top:6px;">${m.m}</h3>
-      <div style="font-size:13px; color:var(--ink-soft); font-style:italic; margin-top:4px;">${m.theme} — ${m.sub}</div>
+      <div style="font-size:13px; color:var(--ink-soft); font-style:italic; margin-top:4px;">${m.theme} - ${m.sub}</div>
     </div>
     <textarea class="write-field" id="ml-body" placeholder="Dear Future Me,">${saved.text || ''}</textarea>
     <div class="write-meta" style="margin-top:18px;">
@@ -742,7 +742,7 @@ function libraryHTML(){
   <div class="subject-grid">
     ${SUBJECTS_LIB.map(s=>`<div class="subject-tile ${s===libSubject?'active':''}" data-s="${s}"><div class="name">${s}</div></div>`).join('')}
   </div>
-  <h3 style="margin-bottom:14px; font-size:16px;">${libSubject} — a small note</h3>
+  <h3 style="margin-bottom:14px; font-size:16px;">${libSubject} - a small note</h3>
   <textarea class="write-field" id="lib-note" style="min-height:100px; font-size:14px;" placeholder="what you're reading, learning, or noticing about ${libSubject.toLowerCase()}..."></textarea>
   <div class="word-row" style="margin-top:22px;">
     <input type="text" id="lib-word" placeholder="today's word">
@@ -832,7 +832,7 @@ function peopleHTML(){
   return `
   <div class="arc-prompt">Who deserves more of my presence lately?</div>
   <textarea class="entry" id="people-presence" placeholder="a name, a feeling, nothing that needs fixing"></textarea>
-  <div class="arc-prompt" style="margin-top:22px;">Someone I love — what I appreciate, what I want to remember, what I want to tell them</div>
+  <div class="arc-prompt" style="margin-top:22px;">Someone I love - what I appreciate, what I want to remember, what I want to tell them</div>
   <div class="write-meta">
     <input type="text" id="people-name" placeholder="their name">
   </div>
